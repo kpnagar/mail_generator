@@ -13,9 +13,9 @@ def extract_jobs(cleaned_text):
         {page_data}
         ### INSTRUCTION:
         The scraped text is from the career's page of a website.
-        Your job is to extract the job postings and return them in JSON format containing the following keys: `role`, `skills` and `description`.
-        Only return the valid JSON. No preamble.
-        ### RESPONSE:
+        Your job is to extract the job postings and return them in JSON format containing the following keys: `role`, `experience`, `techstack` and `description`.
+        Only return the valid JSON.
+        ### VALID JSON (NO PREAMBLE):
         """
     )
     json_parser = JsonOutputParser()
@@ -24,7 +24,7 @@ def extract_jobs(cleaned_text):
     try:
         res = json_parser.parse(res)
     except OutputParserException:
-        print("Parsing to json failed")
+        raise OutputParserException("Context too big. Unable to parse jobs.")
     return res if isinstance(res, list) else [res]
 
 
@@ -37,7 +37,9 @@ def write_mail(job, links):
         ### INSTRUCTION:
         You are Sid, a business development executive at MindInventory. MindInventory is a mindful team of tech innovators with over 13 years of experience in bringing world-class tech ideas to reality. We embrace the power of technology to provide cutting-edge digital solutions that propel our clients toward unprecedented success. Your job is to write a cold email to the client regarding the job mentioned above describing the capability of Mindinventory in fulfilling their needs.
         Also add the following links to showcase Mindinventory's portfolio: {link_list}
-        Remember you are Sid, BDE at Mindinventory. No preamble.
+        Remember you are Sid, BDE at Mindinventory. Do not provide a preamble.
+        ### EMAIL (NO PREAMBLE):
+        
         """
     )
     email_chain = email_prompt | llm
