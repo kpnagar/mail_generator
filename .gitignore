@@ -20,3 +20,4 @@ pycharm*.xml
 # Windows
 Thumbs.db
 
+/mail_generator/vectorstore/
