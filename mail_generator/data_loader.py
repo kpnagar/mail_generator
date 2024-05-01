@@ -22,20 +22,9 @@ def clean_text(text):
     return text
 
 
-portfolio_data = pd.read_csv("/home/mind/Documents/projects/mail_generator/mail_generator/cleaned_portfolio.csv",
-                             index_col=0).dropna()
-
-client = chromadb.PersistentClient(path="vectorstore")
-collection = client.get_or_create_collection(name="portfolios")
-if not collection.count():
-    for _, row in portfolio_data.iterrows():
-        collection.add(documents=row["Technology Platform"],
-                       metadatas={"links": row["Link"]},
-                       ids=[str(uuid.uuid4())])
-
-
 class ChromaDBClient:
     """Class to interact with ChromaDB"""
+
     def __init__(self, path):
         self.client = chromadb.PersistentClient(path=path)
         self.collection = self.client.get_or_create_collection(name="portfolios")
@@ -57,3 +46,12 @@ class DataLoader:
     def load_data(self):
         data = self.loader.load()
         return clean_text(data.pop().page_content)
+
+
+class PortfolioData:
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+        self.data = self.load_data()
+
+    def load_data(self) -> pd.DataFrame:
+        return pd.read_csv(self.file_path, index_col=0).dropna()

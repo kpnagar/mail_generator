@@ -1,19 +1,10 @@
 import uuid
-from typing import List, Optional
+from typing import List
+
 import streamlit as st
-import pandas as pd
 
-from data_loader import DataLoader, ChromaDBClient
 from chains import extract_jobs, write_mail
-
-
-class PortfolioData:
-    def __init__(self, file_path: str):
-        self.file_path = file_path
-        self.data = self.load_data()
-
-    def load_data(self) -> pd.DataFrame:
-        return pd.read_csv(self.file_path, index_col=0).dropna()
+from data_loader import DataLoader, ChromaDBClient, PortfolioData
 
 
 class EmailGenerator:
@@ -33,13 +24,19 @@ class EmailGenerator:
 
 
 def demo():
-    demo_portfolio_file_path = "/home/mind/Documents/projects/mail_generator/mail_generator/cleaned_portfolio.csv"
+    demo_portfolio_file_path = "cleaned_portfolio.csv"
     urls = ["https://www.mindinventory.com/careers.php"]
 
     demo_loader = DataLoader(urls=urls)
     demo_chroma_client = ChromaDBClient(path='vectorstore')
 
     demo_portfolio_data = PortfolioData(file_path=demo_portfolio_file_path)
+
+    if not demo_chroma_client.get_collection().count():
+        for _, demo_row in demo_portfolio_data.data.iterrows():
+            demo_chroma_client.get_collection().add(documents=demo_row["Technology Platform"],
+                                                    metadatas={"links": demo_row["Link"]},
+                                                    ids=[str(uuid.uuid4())])
     demo_email_generator = EmailGenerator(demo_chroma_client, demo_portfolio_data)
 
     demo_text_data = demo_loader.load_data()
@@ -56,9 +53,9 @@ def demo():
 
 
 if __name__ == '__main__':
-    st.set_page_config(layout="wide", page_title="MailGen", page_icon="📨")
+    st.set_page_config(layout="wide", page_title="Cold Emailer", page_icon="📨")
     portfolio_file_path = "cleaned_portfolio.csv"
-    st.title("📨 MailGen")
+    st.title("📨 Cold Emailer")
     st.caption("Generated content may be inaccurate. User's discretion advised.")
     url_input = st.text_input("Enter a URL:", value="https://www.mindinventory.com/careers.php")
     submit_button = st.button("Submit")
@@ -68,6 +65,13 @@ if __name__ == '__main__':
             chroma_client = ChromaDBClient(path='vectorstore')
 
             portfolio_data = PortfolioData(file_path=portfolio_file_path)
+
+            if not chroma_client.get_collection().count():
+                for _, row in portfolio_data.data.iterrows():
+                    chroma_client.get_collection().add(documents=row["Technology Platform"],
+                                                       metadatas={"links": row["Link"]},
+                                                       ids=[str(uuid.uuid4())])
+
             email_generator = EmailGenerator(chroma_client, portfolio_data)
 
             text_data = loader.load_data()
